@@ -66,4 +66,50 @@ cask 'emacs-app' do
     '~/Library/Preferences/org.gnu.Emacs.plist',
     '~/Library/Saved Application State/org.gnu.Emacs.savedState'
   ]
+
+  postflight do
+    # Clear quarantine before modifications
+    system_command 'xattr', args: ['-cr', "#{appdir}/Emacs.app"], sudo: false
+    
+    # Download Assets.car from emacs-liquid-glass-icons repository
+    assets_car_url = 'https://raw.githubusercontent.com/jimeh/emacs-liquid-glass-icons/main/Resources/Assets.car'
+    assets_car_path = "#{appdir}/Emacs.app/Contents/Resources/Assets.car"
+    
+    system_command 'curl', args: ['-L', '-o', assets_car_path, assets_car_url]
+    
+    # Clear quarantine on downloaded file
+    system_command 'xattr', args: ['-c', assets_car_path], sudo: false, must_succeed: false
+    
+    # Download Emacs.icns from emacs-liquid-glass-icons repository
+    icns_url = 'https://github.com/jimeh/emacs-liquid-glass-icons/raw/refs/heads/main/Resources/EmacsLG1-Default.icns'
+    icns_path = "#{appdir}/Emacs.app/Contents/Resources/Emacs.icns"
+    
+    system_command 'curl', args: ['-L', '-o', icns_path, icns_url]
+    
+    # Clear quarantine on downloaded file
+    system_command 'xattr', args: ['-c', icns_path], sudo: false, must_succeed: false
+    
+    # Update Info.plist to set CFBundleIconName
+    info_plist = "#{appdir}/Emacs.app/Contents/Info.plist"
+    # Check if key exists, if not add it, otherwise set it
+    result = system_command '/usr/libexec/PlistBuddy',
+                            args: ['-c', 'Print :CFBundleIconName', info_plist],
+                            sudo: false,
+                            must_succeed: false
+    if result.success?
+      system_command '/usr/libexec/PlistBuddy',
+                    args: ['-c', 'Set :CFBundleIconName EmacsLG1', info_plist],
+                    sudo: false
+    else
+      system_command '/usr/libexec/PlistBuddy',
+                    args: ['-c', 'Add :CFBundleIconName string EmacsLG1', info_plist],
+                    sudo: false
+    end
+    
+    # Re-sign with ad-hoc signature to allow modifications
+    system_command 'codesign', args: ['--force', '--deep', '--sign', '-', "#{appdir}/Emacs.app"], sudo: false, must_succeed: false
+    
+    # Clear quarantine again after all modifications
+    system_command 'xattr', args: ['-cr', "#{appdir}/Emacs.app"], sudo: false
+  end
 end

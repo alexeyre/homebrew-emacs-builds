@@ -1,5 +1,8 @@
 <div align="center">
 
+Fork of the homebrew tap [jimeh/homebrew-emacs-builds](https://github.com/jimeh/homebrew-emacs-builds) adding automatic patching with the same's liquid glass icons.
+I strongly urge you not to use this, it definitely doesn't follow best practices and resigns the whole binary with a local signature to get it to work, this is mostly just for me.
+
 # Homebrew Tap: emacs-builds
 
 [![Build status](https://img.shields.io/github/actions/workflow/status/jimeh/homebrew-emacs-builds/update-casks.yml?style=flat&label=build&logo=github&logoColor=white)](https://github.com/jimeh/homebrew-emacs-builds/actions)
